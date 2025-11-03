@@ -1,0 +1,5 @@
+.terraform/
+*.tfstate*
+*.zip
+.idea/
+.DS_Store

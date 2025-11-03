@@ -1,0 +1,48 @@
+- name: install node exporter
+  shell: |
+    id node_exporter || useradd --no-create-home --shell /usr/sbin/nologin node_exporter
+    curl -L https://github.com/prometheus/node_exporter/releases/download/v1.8.1/node_exporter-1.8.1.linux-amd64.tar.gz | tar xz
+    cp node_exporter-1.8.1.linux-amd64/node_exporter /usr/local/bin/
+    cat >/etc/systemd/system/node_exporter.service <<'EOF'
+    [Unit]
+    Description=Node Exporter
+    After=network-online.target
+    [Service]
+    User=node_exporter
+    Group=node_exporter
+    Type=simple
+    ExecStart=/usr/local/bin/node_exporter
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    systemctl daemon-reload
+    systemctl enable --now node_exporter
+
+- name: install nginx log exporter
+  shell: |
+    curl -L https://github.com/martin-helmich/prometheus-nginxlog-exporter/releases/download/v1.11.0/prometheus-nginxlog-exporter_1.11.0_linux_amd64.tar.gz | tar xz -C /usr/local/bin --strip-components=1 prometheus-nginxlog-exporter
+    cat >/etc/prometheus-nginxlog-exporter.yml <<'EOF'
+    listen:
+      port: 4040
+    namespace: nginx
+    labels:
+      server: {{ inventory_hostname }}
+    positions:
+      filename: /var/lib/nginxlogexp-positions.yaml
+    files:
+      - path: /var/log/nginx/access.log
+        labels:
+          format: nginx
+    EOF
+    cat >/etc/systemd/system/nginxlogexp.service <<'EOF'
+    [Unit]
+    Description=Nginx Log Exporter
+    After=network.target
+    [Service]
+    ExecStart=/usr/local/bin/prometheus-nginxlog-exporter -config-file /etc/prometheus-nginxlog-exporter.yml
+    Restart=on-failure
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    systemctl daemon-reload
+    systemctl enable --now nginxlogexp

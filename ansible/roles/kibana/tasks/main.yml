@@ -1,0 +1,11 @@
+- name: install kibana or docker
+  shell: |
+    set -e
+    if apt-get install -y kibana; then
+      echo "server.host: 0.0.0.0" >>/etc/kibana/kibana.yml
+      echo "elasticsearch.hosts: [\"http://10.20.2.20:9200\"]" >>/etc/kibana/kibana.yml
+      systemctl enable --now kibana
+    else
+      apt install -y docker.io || true
+      docker run -d --name kibana -p 5601:5601 -e ELASTICSEARCH_HOSTS=http://10.20.2.20:9200 docker.elastic.co/kibana/kibana:8.15.2
+    fi

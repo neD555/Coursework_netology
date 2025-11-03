@@ -1,0 +1,5 @@
+cloud_id   = "REPLACE_ME"
+folder_id  = "REPLACE_ME"
+access_key = "REPLACE_ME"
+secret_key = "REPLACE_ME"
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQREPLACE_ME user@host"

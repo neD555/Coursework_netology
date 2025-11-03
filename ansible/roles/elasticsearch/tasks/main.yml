@@ -1,0 +1,15 @@
+- name: install elasticsearch or run docker if repo blocked
+  shell: |
+    set -e
+    apt update
+    if apt-get install -y apt-transport-https default-jre-headless; then
+      wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
+      echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" >/etc/apt/sources.list.d/elastic-8.x.list
+      apt update && apt install -y elasticsearch
+      sed -i 's/^#\?network.host.*/network.host: 0.0.0.0/' /etc/elasticsearch/elasticsearch.yml
+      grep -q '^discovery.type:' /etc/elasticsearch/elasticsearch.yml || echo "discovery.type: single-node" >>/etc/elasticsearch/elasticsearch.yml
+      systemctl enable --now elasticsearch
+    else
+      apt install -y docker.io || true
+      docker run -d --name es -p 9200:9200 -e discovery.type=single-node -e xpack.security.enabled=false -v /es:/usr/share/elasticsearch/data docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+    fi

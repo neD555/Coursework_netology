@@ -1,0 +1,19 @@
+- name: install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: deploy static site
+  copy:
+    src: site/
+    dest: /var/www/html/
+    owner: www-data
+    group: www-data
+    mode: "0644"
+
+- name: ensure nginx started
+  service:
+    name: nginx
+    state: started
+    enabled: yes

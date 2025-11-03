@@ -1,0 +1,19 @@
+- name: install filebeat
+  shell: |
+    wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
+    echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" >/etc/apt/sources.list.d/elastic-8.x.list
+    apt update && apt install -y filebeat
+    cat >/etc/filebeat/filebeat.yml <<'EOF'
+    filebeat.inputs:
+      - type: filestream
+        id: nginx-access
+        paths: [/var/log/nginx/access.log]
+      - type: filestream
+        id: nginx-error
+        paths: [/var/log/nginx/error.log]
+    output.elasticsearch:
+      hosts: ["10.20.2.20:9200"]
+    setup.kibana:
+      host: "10.10.2.20:5601"
+    EOF
+    systemctl enable --now filebeat

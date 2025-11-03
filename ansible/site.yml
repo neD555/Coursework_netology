@@ -1,0 +1,19 @@
+- hosts: web
+  become: yes
+  roles: [nginx, exporters, filebeat]
+
+- hosts: prom
+  become: yes
+  roles: [prometheus]
+
+- hosts: grafana
+  become: yes
+  roles: [grafana]
+
+- hosts: elastic
+  become: yes
+  roles: [elasticsearch]
+
+- hosts: kibana
+  become: yes
+  roles: [kibana]
