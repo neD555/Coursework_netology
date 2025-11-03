@@ -30,13 +30,25 @@ resource "yandex_vpc_subnet" "private_b" {
   route_table_id = yandex_vpc_route_table.rt.id
 }
 
-resource "yandex_vpc_gateway" "nat" { name = "nat-gw" }
+resource "yandex_vpc_gateway" "nat" {
+  name = "nat-gw"
+
+  shared_egress_gateway {}
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
 
 resource "yandex_vpc_route_table" "rt" {
   name       = "private-rt"
   network_id = yandex_vpc_network.vpc.id
+
   static_route {
     destination_prefix = "0.0.0.0/0"
     gateway_id         = yandex_vpc_gateway.nat.id
   }
+
+  depends_on = [yandex_vpc_gateway.nat]
 }
+
